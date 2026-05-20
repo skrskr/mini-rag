@@ -1,0 +1,2 @@
+###
+GET http://localhost:8000/welcome HTTP/1.1
