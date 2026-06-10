@@ -221,3 +221,4 @@ __marimo__/
 
 # Docker volumes
 docker/mongodb/
+docker/qdrant/
