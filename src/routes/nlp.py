@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, status, Request
 from fastapi.responses import JSONResponse
-from .schemes.nlp import PushRequest
+from .schemes.nlp import PushRequest, SearchRequest
 from models.ProjectModel import ProjectModel
 from models.ChunkModel import ChunkModel
 from models import ResponseSignal
@@ -88,6 +88,50 @@ async def index_project(request: Request, project_id: str, push_request: PushReq
         }
     )
 
+
+@nlp_router.get("/index/info/{project_id}")
+async def index_project(request: Request, project_id: str, search_request: SearchRequest):
+
+    project_model = await ProjectModel.create_instance(
+        db_client=request.app.db_client
+    )
+
+    project = await project_model.get_project_or_create_one(
+        project_id=project_id
+    )
+
+    if not project:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "signal": ResponseSignal.PROJECT_NOT_FOUND_ERROR.value
+            }
+        )
+    
+    nlp_controller = NLPController(
+        request.app.vector_db_client, 
+        request.app.generation_client, 
+        request.app.embedding_client
+    )
+
+    results = nlp_controller.search_vector_db_collection(
+        project=project, text=search_request.text, limit=search_request.limit
+    )
+
+    if not results:
+        return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={
+                    "signal": ResponseSignal.VECTORDB_SEARCH_ERROR.value
+                }
+            )
+    
+    return JSONResponse(
+        content={
+            "signal": ResponseSignal.VECTORDB_SEARCH_SUCCESS.value,
+            "results": [ result.dict()  for result in results ]
+        }
+    )
 
 
 
