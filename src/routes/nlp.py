@@ -42,7 +42,8 @@ async def index_project(request: Request, project_id: str, push_request: PushReq
     nlp_controller = NLPController(
         request.app.vector_db_client, 
         request.app.generation_client, 
-        request.app.embedding_client
+        request.app.embedding_client,
+        request.app.template_parser,
     )
 
     has_records = True
@@ -111,7 +112,8 @@ async def index_project(request: Request, project_id: str, search_request: Searc
     nlp_controller = NLPController(
         request.app.vector_db_client, 
         request.app.generation_client, 
-        request.app.embedding_client
+        request.app.embedding_client,
+        request.app.template_parser,
     )
 
     results = nlp_controller.search_vector_db_collection(
